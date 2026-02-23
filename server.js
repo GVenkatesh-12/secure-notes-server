@@ -69,8 +69,9 @@ app.post('/register', async (req, res) => {
         await newUser.save();
         res.status(201).json({ message: "User Registered!" });
     } catch (err) {
-        res.status(400).json({ error: err.message }); // This will tell us the TRUTH
-    }
+    console.error("DEBUG ERROR:", err.message); // You see this in Render logs
+    res.status(400).json({ error: "Registration failed. Check your data or try another email." }); // User sees this
+}
 });
 
 // LOGIN
