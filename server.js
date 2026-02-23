@@ -14,19 +14,19 @@ app.use(express.json());
 
 // --- DATABASE CONNECTION ---
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("🚀 Connected to MongoDB!"))
-  .catch(err => console.error("❌ Database error:", err));
+    .then(() => console.log("🚀 Connected to MongoDB!"))
+    .catch(err => console.error("❌ Database error:", err));
 
 // --- SCHEMAS & MODELS ---
 const noteSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  content: String,
-  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+    title: { type: String, required: true },
+    content: String,
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 }, { timestamps: true });
 
 const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true, lowercase: true }, // Added lowercase for consistency
-  password: { type: String, required: true }
+    email: { type: String, required: true, unique: true, lowercase: true }, // Added lowercase for consistency
+    password: { type: String, required: true }
 });
 
 const blacklistSchema = new mongoose.Schema({
@@ -63,14 +63,14 @@ const auth = async (req, res, next) => {
 
 // REGISTER
 app.post('/register', async (req, res) => {
-  try {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    const newUser = new User({ email: req.body.email, password: hashedPassword });
-    await newUser.save();
-    res.status(201).json({ message: "User Registered!" });
-  } catch (err) {
-    res.status(400).json({ error: "Email already exists or invalid data" });
-  }
+    try {
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const newUser = new User({ email: req.body.email, password: hashedPassword });
+        await newUser.save();
+        res.status(201).json({ message: "User Registered!" });
+    } catch (err) {
+        res.status(400).json({ error: err.message }); // This will tell us the TRUTH
+    }
 });
 
 // LOGIN
@@ -124,30 +124,30 @@ app.get('/notes', auth, async (req, res) => {
 
 // NOTES: UPDATE
 app.patch('/notes/:id', auth, async (req, res) => {
-  try {
-    const updatedNote = await Note.findOneAndUpdate(
-      { _id: req.params.id, owner: req.user.userId }, // Faster: checks ID AND Owner in one go
-      req.body,
-      { new: true, runValidators: true }
-    );
-    if (!updatedNote) return res.status(404).json({ error: "Note not found or unauthorized" });
-    res.json(updatedNote);
-  } catch (err) {
-    res.status(400).json({ error: "Update failed" });
-  }
+    try {
+        const updatedNote = await Note.findOneAndUpdate(
+            { _id: req.params.id, owner: req.user.userId }, // Faster: checks ID AND Owner in one go
+            req.body,
+            { new: true, runValidators: true }
+        );
+        if (!updatedNote) return res.status(404).json({ error: "Note not found or unauthorized" });
+        res.json(updatedNote);
+    } catch (err) {
+        res.status(400).json({ error: "Update failed" });
+    }
 });
 
 // NOTES: DELETE
 app.delete('/notes/:id', auth, async (req, res) => {
-  try {
-    const deletedNote = await Note.findOneAndDelete({ _id: req.params.id, owner: req.user.userId });
-    if (!deletedNote) return res.status(404).json({ error: "Note not found or unauthorized" });
-    res.json({ message: "Note deleted!" });
-  } catch (err) {
-    res.status(500).json({ error: "Delete failed" });
-  }
+    try {
+        const deletedNote = await Note.findOneAndDelete({ _id: req.params.id, owner: req.user.userId });
+        if (!deletedNote) return res.status(404).json({ error: "Note not found or unauthorized" });
+        res.json({ message: "Note deleted!" });
+    } catch (err) {
+        res.status(500).json({ error: "Delete failed" });
+    }
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+    console.log(`✅ Server running on port ${PORT}`);
 });
