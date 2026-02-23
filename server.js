@@ -148,4 +148,6 @@ app.delete('/notes/:id', auth, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`✅ Server live at http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
