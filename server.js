@@ -149,6 +149,29 @@ app.delete('/notes/:id', auth, async (req, res) => {
     }
 });
 
+// ROUTE: Change Password (while logged in)
+app.post('/change-password', auth, async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+
+        // 1. Find the user by the ID stored in the JWT token
+        const user = await User.findById(req.user.userId);
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        // 2. Verify the old password is correct
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) return res.status(400).json({ error: "Current password is incorrect" });
+
+        // 3. Hash and save the new password
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        res.json({ message: "Password updated successfully!" });
+    } catch (err) {
+        res.status(500).json({ error: "Could not update password" });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`✅ Server running on port ${PORT}`);
 });

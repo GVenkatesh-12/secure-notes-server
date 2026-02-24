@@ -82,7 +82,26 @@ Content-Type: application/json
 Response: `200 OK`
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "email": "user@example.com"
+}
+```
+
+#### Change Password
+```
+POST /change-password
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "oldPassword": "currentpassword",
+  "newPassword": "newpassword"
+}
+```
+Response: `200 OK`
+```json
+{
+  "message": "Password updated successfully!"
 }
 ```
 
