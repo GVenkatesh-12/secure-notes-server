@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
 
 const blacklistSchema = new mongoose.Schema({
     token: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now, expires: '1h' }
+    createdAt: { type: Date, default: Date.now, expires: '30d' }
 });
 
 const Note = mongoose.model('Note', noteSchema);
