@@ -12,6 +12,9 @@ A secure REST API for managing personal notes with user authentication. Built wi
 - **CORS Enabled**: Allows frontend applications to connect
 - **Automatic Timestamps**: Each note tracks creation and update times
 - **Environment Configuration**: Secure configuration with .env file
+- **Health Check Route**: Public endpoint for uptime checks
+- **Input Validation**: Request payload validation for auth, notes, and password change
+- **Rate Limiting**: Basic brute-force protection on auth routes
 
 ## Tech Stack 🛠️
 
@@ -43,6 +46,7 @@ A secure REST API for managing personal notes with user authentication. Built wi
 3. **Create a .env file**
    ```
    MONGO_URI=your_mongodb_connection_string
+   JWT_SECRET=your_long_random_secret
    PORT=3000
    ```
 
@@ -57,6 +61,17 @@ The server will run on `http://localhost:3000`
 
 ### Authentication Routes
 
+#### Health Check
+```
+GET /health
+```
+Response: `200 OK`
+```json
+{
+  "status": "ok"
+}
+```
+
 #### Register a New User
 ```
 POST /register
@@ -68,6 +83,7 @@ Content-Type: application/json
 }
 ```
 Response: `201 Created` - "User Registered!"
+Validation: `email` must be valid format, `password` length must be 6-128 characters.
 
 #### Login
 ```
@@ -86,6 +102,14 @@ Response: `200 OK`
   "email": "user@example.com"
 }
 ```
+Validation: `email` must be valid format, `password` length must be 6-128 characters.
+
+#### Logout
+```
+POST /logout
+Authorization: Bearer <token>
+```
+Response: `200 OK` - "Logged out successfully"
 
 #### Change Password
 ```
@@ -104,6 +128,7 @@ Response: `200 OK`
   "message": "Password updated successfully!"
 }
 ```
+Validation: `oldPassword` and `newPassword` are required; `newPassword` length must be 6-128 characters.
 
 ### Note Routes (Require Authentication)
 
@@ -124,6 +149,7 @@ Content-Type: application/json
 }
 ```
 Response: `201 Created`
+Validation: `title` is required and must be a non-empty string. `content` must be a string if provided.
 
 #### Get All Notes
 ```
@@ -144,6 +170,7 @@ Content-Type: application/json
 }
 ```
 Response: `200 OK` - Updated note object
+Validation: at least one valid field must be sent (`title` and/or `content`).
 
 #### Delete a Note
 ```
@@ -152,23 +179,16 @@ Authorization: Bearer <token>
 ```
 Response: `200 OK` - Confirmation message
 
-### Logout Route
-
-#### Logout
-```
-POST /logout
-Authorization: Bearer <token>
-```
-Response: `200 OK` - "Logged out successfully"
-
 ## Security Features 🔒
 
-- **JWT Tokens**: Stateless authentication with expiring tokens (1 hour default)
+- **JWT Tokens**: Stateless authentication with expiring tokens (30 days)
 - **Password Hashing**: Bcryptjs with salt rounds (10)
 - **Token Blacklisting**: Invalid tokens after logout
 - **Ownership Verification**: Users cannot access other users' notes
 - **Email Validation**: Unique email addresses with case-insensitive matching
 - **Authorization Header**: Standard Bearer token format
+- **Rate Limiting**: Limits repeated auth attempts (register/login/change-password)
+- **Startup Safety**: Server starts only after MongoDB connection succeeds
 
 ## Data Models 📊
 
@@ -200,6 +220,7 @@ The API returns appropriate HTTP status codes:
 - `401 Unauthorized` - Missing or invalid authentication token
 - `403 Forbidden` - User not authorized to access this resource
 - `404 Not Found` - Resource not found
+- `429 Too Many Requests` - Rate limit exceeded
 - `500 Server Error` - Internal server error
 
 ## Environment Variables 🔑
@@ -208,8 +229,11 @@ Create a `.env` file in the project root:
 
 ```env
 MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/notesdb
+JWT_SECRET=your_long_random_secret
 PORT=3000
 ```
+
+Required variables: `MONGO_URI` and `JWT_SECRET`. The API exits on startup if either is missing.
 
 ## Usage Example 💡
 
@@ -246,7 +270,6 @@ project-3-notes/
 - Add note categories/tags
 - Implement note sharing between users
 - Add search functionality
-- Rate limiting for API endpoints
 - Email verification on registration
 - Password reset functionality
 - Note versioning (history)
